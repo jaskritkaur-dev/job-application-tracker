@@ -23,6 +23,12 @@
   --warning: #f59e0b;
   --danger: #ef4444;
 
+  --status-saved: #94a3b8;
+  --status-applied: #3b82f6;
+  --status-interview: #f59e0b;
+  --status-offer: #22c55e;
+  --status-rejected: #ef4444;
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
