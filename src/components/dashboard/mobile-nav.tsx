@@ -6,6 +6,7 @@ import {
     LayoutDashboard,
     X,
 } from "lucide-react";
+import LogoutButton from "@/components/dashboard/logout-button";
 
 interface MobileNavProps {
     isOpen: boolean;
@@ -83,6 +84,9 @@ export default function MobileNav({
                         Analytics
                     </a>
                 </nav>
+                <div className="mt-auto border-t border-[var(--border)] p-4">
+                    <LogoutButton />
+                </div>
             </aside>
         </div>
     );

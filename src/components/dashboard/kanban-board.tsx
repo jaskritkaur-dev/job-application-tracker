@@ -1,6 +1,8 @@
 import JobCard from "@/components/dashboard/job-card";
-import { mockApplications } from "@/data/mockApplications";
-import { ApplicationStatus } from "@/types/application";
+import {
+    ApplicationStatus,
+    JobApplication,
+} from "@/types/application";
 
 const columns: {
     title: string;
@@ -34,7 +36,13 @@ const columns: {
         },
     ];
 
-export default function KanbanBoard() {
+interface KanbanBoardProps {
+    applications: JobApplication[];
+}
+
+export default function KanbanBoard({
+    applications,
+}: KanbanBoardProps) {
     return (
         <section id="board" className="mt-8">
             <div className="mb-4">
@@ -50,7 +58,7 @@ export default function KanbanBoard() {
             <div className="overflow-x-auto pb-4">
                 <div className="grid min-w-[1400px] grid-cols-5 gap-4">
                     {columns.map((column) => {
-                        const applications = mockApplications.filter(
+                        const columnApplications = applications.filter(
                             (application) => application.status === column.status
                         );
 
@@ -72,19 +80,19 @@ export default function KanbanBoard() {
                                     </div>
 
                                     <span className="rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-xs text-[var(--text-muted)]">
-                                        {applications.length}
+                                        {columnApplications.length}
                                     </span>
                                 </div>
 
                                 <div className="space-y-3">
-                                    {applications.map((application) => (
+                                    {columnApplications.map((application) => (
                                         <JobCard
                                             key={application.id}
                                             application={application}
                                         />
                                     ))}
 
-                                    {applications.length === 0 && (
+                                    {columnApplications.length === 0 && (
                                         <div className="rounded-xl border border-dashed border-[var(--border)] px-3 py-8 text-center">
                                             <p className="text-xs text-[var(--text-muted)]">
                                                 No applications

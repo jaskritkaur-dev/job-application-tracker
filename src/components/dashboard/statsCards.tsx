@@ -5,30 +5,61 @@ import {
     TrendingUp,
 } from "lucide-react";
 
-const stats = [
-    {
-        label: "Total Applications",
-        value: "24",
-        icon: BriefcaseBusiness,
-    },
-    {
-        label: "Interviews",
-        value: "6",
-        icon: CalendarCheck,
-    },
-    {
-        label: "Offers",
-        value: "2",
-        icon: Trophy,
-    },
-    {
-        label: "Response Rate",
-        value: "33%",
-        icon: TrendingUp,
-    },
-];
+import { JobApplication } from "@/types/application";
 
-export default function StatsCards() {
+interface StatsCardsProps {
+    applications: JobApplication[];
+}
+
+export default function StatsCards({
+    applications,
+}: StatsCardsProps) {
+    const totalApplications = applications.length;
+
+    const interviews = applications.filter(
+        (application) => application.status === "interview"
+    ).length;
+
+    const offers = applications.filter(
+        (application) => application.status === "offer"
+    ).length;
+
+    const submittedApplications = applications.filter(
+        (application) => application.status !== "saved"
+    ).length;
+
+    const responses = applications.filter((application) =>
+        ["interview", "offer", "rejected"].includes(application.status)
+    ).length;
+
+    const responseRate =
+        submittedApplications > 0
+            ? Math.round((responses / submittedApplications) * 100)
+            : 0;
+
+    const stats = [
+        {
+            label: "Total Applications",
+            value: totalApplications,
+            icon: BriefcaseBusiness,
+        },
+        {
+            label: "Interviews",
+            value: interviews,
+            icon: CalendarCheck,
+        },
+        {
+            label: "Offers",
+            value: offers,
+            icon: Trophy,
+        },
+        {
+            label: "Response Rate",
+            value: `${responseRate}%`,
+            icon: TrendingUp,
+        },
+    ];
+
     return (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {stats.map((stat) => {

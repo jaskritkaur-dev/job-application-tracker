@@ -3,6 +3,7 @@ import {
     BriefcaseBusiness,
     LayoutDashboard,
 } from "lucide-react";
+import LogoutButton from "@/components/dashboard/logout-button";
 
 export default function Sidebar() {
     return (
@@ -47,9 +48,10 @@ export default function Sidebar() {
                     Analytics
                 </a>
             </nav>
-
             <div className="border-t border-[var(--border)] p-4">
-                <p className="text-xs text-[var(--text-muted)]">
+                <LogoutButton />
+
+                <p className="mt-2 px-4 text-xs text-[var(--text-muted)]">
                     Job Application Tracker
                 </p>
             </div>
