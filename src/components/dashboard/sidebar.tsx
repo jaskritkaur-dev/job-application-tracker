@@ -2,6 +2,7 @@ import {
     BarChart3,
     BriefcaseBusiness,
     LayoutDashboard,
+    Settings,
 } from "lucide-react";
 
 import LogoutButton from "@/components/dashboard/logout-button";
@@ -72,6 +73,17 @@ export default function Sidebar() {
                     />
 
                     Analytics
+                </a>
+                <a
+                    href="/settings"
+                    className={navLinkClass}
+                >
+                    <Settings
+                        size={18}
+                        aria-hidden="true"
+                    />
+
+                    Settings
                 </a>
             </nav>
 

@@ -8,27 +8,43 @@ import { BriefcaseBusiness } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
     const supabase = createClient();
     const router = useRouter();
 
-    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] =
+        useState("");
+
     const [message, setMessage] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] =
         useState(false);
 
-    async function handleLogin(
+    async function handleResetPassword(
         event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
 
         setMessage("");
+        setIsSuccess(false);
+
+        if (password !== confirmPassword) {
+            setMessage("Passwords do not match.");
+            return;
+        }
+
+        if (password.length < 6) {
+            setMessage(
+                "Password must be at least 6 characters."
+            );
+            return;
+        }
+
         setIsSubmitting(true);
 
         const { error } =
-            await supabase.auth.signInWithPassword({
-                email,
+            await supabase.auth.updateUser({
                 password,
             });
 
@@ -38,8 +54,17 @@ export default function LoginPage() {
             return;
         }
 
-        router.push("/");
-        router.refresh();
+        setIsSuccess(true);
+        setMessage(
+            "Password updated successfully. You can now sign in with your new password."
+        );
+
+        setIsSubmitting(false);
+
+        setTimeout(() => {
+            router.push("/login");
+            router.refresh();
+        }, 1800);
     }
 
     return (
@@ -64,59 +89,28 @@ export default function LoginPage() {
 
                 <div>
                     <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-                        Welcome back
+                        Reset your password
                     </h2>
 
                     <p className="mt-2 text-sm text-[var(--text-muted)]">
-                        Sign in to continue managing your applications.
+                        Choose a new password for your account.
                     </p>
                 </div>
 
                 <form
-                    onSubmit={handleLogin}
+                    onSubmit={handleResetPassword}
                     className="mt-6 space-y-4"
                 >
                     <div>
                         <label
-                            htmlFor="login-email"
+                            htmlFor="new-password"
                             className="mb-2 block text-sm font-medium text-[var(--text-secondary)]"
                         >
-                            Email
+                            New Password
                         </label>
 
                         <input
-                            id="login-email"
-                            type="email"
-                            value={email}
-                            onChange={(event) =>
-                                setEmail(event.target.value)
-                            }
-                            required
-                            autoComplete="email"
-                            placeholder="you@example.com"
-                            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
-                        />
-                    </div>
-
-                    <div>
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                            <label
-                                htmlFor="login-password"
-                                className="text-sm font-medium text-[var(--text-secondary)]"
-                            >
-                                Password
-                            </label>
-
-                            <Link
-                                href="/forgot-password"
-                                className="text-sm font-medium text-[var(--primary)] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-                            >
-                                Forgot password?
-                            </Link>
-                        </div>
-
-                        <input
-                            id="login-password"
+                            id="new-password"
                             type="password"
                             value={password}
                             onChange={(event) =>
@@ -124,16 +118,44 @@ export default function LoginPage() {
                             }
                             required
                             minLength={6}
-                            autoComplete="current-password"
-                            placeholder="Enter your password"
+                            autoComplete="new-password"
+                            placeholder="Minimum 6 characters"
+                            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="confirm-password"
+                            className="mb-2 block text-sm font-medium text-[var(--text-secondary)]"
+                        >
+                            Confirm Password
+                        </label>
+
+                        <input
+                            id="confirm-password"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(event) =>
+                                setConfirmPassword(
+                                    event.target.value
+                                )
+                            }
+                            required
+                            minLength={6}
+                            autoComplete="new-password"
+                            placeholder="Re-enter your password"
                             className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                         />
                     </div>
 
                     {message && (
                         <div
-                            role="alert"
-                            className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]"
+                            role={isSuccess ? "status" : "alert"}
+                            className={`rounded-xl border p-4 text-sm ${isSuccess
+                                    ? "border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--success)]"
+                                    : "border-[var(--danger)]/30 bg-[var(--danger)]/10 text-[var(--danger)]"
+                                }`}
                         >
                             {message}
                         </div>
@@ -145,18 +167,18 @@ export default function LoginPage() {
                         className="w-full rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {isSubmitting
-                            ? "Signing In..."
-                            : "Sign In"}
+                            ? "Updating Password..."
+                            : "Update Password"}
                     </button>
                 </form>
 
                 <p className="mt-5 text-center text-sm text-[var(--text-muted)]">
-                    Don&apos;t have an account?{" "}
+                    Back to{" "}
                     <Link
-                        href="/signup"
+                        href="/login"
                         className="font-medium text-[var(--primary)] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
                     >
-                        Sign up
+                        Sign in
                     </Link>
                 </p>
             </div>

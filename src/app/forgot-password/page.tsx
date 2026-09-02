@@ -3,33 +3,35 @@
 import { useState } from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BriefcaseBusiness } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
     const supabase = createClient();
-    const router = useRouter();
 
     const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
-    const [isSubmitting, setIsSubmitting] =
-        useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
-    async function handleLogin(
+    async function handleResetRequest(
         event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
 
         setMessage("");
+        setIsSuccess(false);
         setIsSubmitting(true);
 
+        const redirectTo =
+            typeof window !== "undefined"
+                ? `${window.location.origin}/reset-password`
+                : undefined;
+
         const { error } =
-            await supabase.auth.signInWithPassword({
-                email,
-                password,
+            await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo,
             });
 
         if (error) {
@@ -38,8 +40,11 @@ export default function LoginPage() {
             return;
         }
 
-        router.push("/");
-        router.refresh();
+        setIsSuccess(true);
+        setMessage(
+            "Password reset email sent. Check your inbox and open the reset link."
+        );
+        setIsSubmitting(false);
     }
 
     return (
@@ -64,28 +69,28 @@ export default function LoginPage() {
 
                 <div>
                     <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-                        Welcome back
+                        Forgot your password?
                     </h2>
 
                     <p className="mt-2 text-sm text-[var(--text-muted)]">
-                        Sign in to continue managing your applications.
+                        Enter your email and we&apos;ll send you a password reset link.
                     </p>
                 </div>
 
                 <form
-                    onSubmit={handleLogin}
+                    onSubmit={handleResetRequest}
                     className="mt-6 space-y-4"
                 >
                     <div>
                         <label
-                            htmlFor="login-email"
+                            htmlFor="reset-email"
                             className="mb-2 block text-sm font-medium text-[var(--text-secondary)]"
                         >
                             Email
                         </label>
 
                         <input
-                            id="login-email"
+                            id="reset-email"
                             type="email"
                             value={email}
                             onChange={(event) =>
@@ -98,42 +103,13 @@ export default function LoginPage() {
                         />
                     </div>
 
-                    <div>
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                            <label
-                                htmlFor="login-password"
-                                className="text-sm font-medium text-[var(--text-secondary)]"
-                            >
-                                Password
-                            </label>
-
-                            <Link
-                                href="/forgot-password"
-                                className="text-sm font-medium text-[var(--primary)] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-                            >
-                                Forgot password?
-                            </Link>
-                        </div>
-
-                        <input
-                            id="login-password"
-                            type="password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            required
-                            minLength={6}
-                            autoComplete="current-password"
-                            placeholder="Enter your password"
-                            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
-                        />
-                    </div>
-
                     {message && (
                         <div
-                            role="alert"
-                            className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]"
+                            role={isSuccess ? "status" : "alert"}
+                            className={`rounded-xl border p-4 text-sm ${isSuccess
+                                    ? "border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--success)]"
+                                    : "border-[var(--danger)]/30 bg-[var(--danger)]/10 text-[var(--danger)]"
+                                }`}
                         >
                             {message}
                         </div>
@@ -145,18 +121,18 @@ export default function LoginPage() {
                         className="w-full rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {isSubmitting
-                            ? "Signing In..."
-                            : "Sign In"}
+                            ? "Sending..."
+                            : "Send Reset Link"}
                     </button>
                 </form>
 
                 <p className="mt-5 text-center text-sm text-[var(--text-muted)]">
-                    Don&apos;t have an account?{" "}
+                    Remember your password?{" "}
                     <Link
-                        href="/signup"
+                        href="/login"
                         className="font-medium text-[var(--primary)] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
                     >
-                        Sign up
+                        Back to sign in
                     </Link>
                 </p>
             </div>

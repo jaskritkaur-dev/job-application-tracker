@@ -9,6 +9,7 @@ import {
     BriefcaseBusiness,
     LayoutDashboard,
     X,
+    Settings,
 } from "lucide-react";
 
 import LogoutButton from "@/components/dashboard/logout-button";
@@ -156,6 +157,19 @@ export default function MobileNav({
                         />
 
                         Analytics
+                    </a>
+
+                    <a
+                        href="/settings"
+                        onClick={onClose}
+                        className={navLinkClass}
+                    >
+                        <Settings
+                            size={18}
+                            aria-hidden="true"
+                        />
+
+                        Settings
                     </a>
                 </nav>
 
