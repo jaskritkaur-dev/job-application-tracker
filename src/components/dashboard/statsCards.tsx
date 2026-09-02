@@ -14,27 +14,49 @@ interface StatsCardsProps {
 export default function StatsCards({
     applications,
 }: StatsCardsProps) {
-    const totalApplications = applications.length;
+    const totalApplications =
+        applications.length;
 
-    const interviews = applications.filter(
-        (application) => application.status === "interview"
-    ).length;
+    const interviews =
+        applications.filter(
+            (application) =>
+                application.status ===
+                "interview"
+        ).length;
 
-    const offers = applications.filter(
-        (application) => application.status === "offer"
-    ).length;
+    const offers =
+        applications.filter(
+            (application) =>
+                application.status ===
+                "offer"
+        ).length;
 
-    const submittedApplications = applications.filter(
-        (application) => application.status !== "saved"
-    ).length;
+    const submittedApplications =
+        applications.filter(
+            (application) =>
+                application.status !==
+                "saved"
+        ).length;
 
-    const responses = applications.filter((application) =>
-        ["interview", "offer", "rejected"].includes(application.status)
-    ).length;
+    const responses =
+        applications.filter(
+            (application) =>
+                [
+                    "interview",
+                    "offer",
+                    "rejected",
+                ].includes(
+                    application.status
+                )
+        ).length;
 
     const responseRate =
         submittedApplications > 0
-            ? Math.round((responses / submittedApplications) * 100)
+            ? Math.round(
+                (responses /
+                    submittedApplications) *
+                100
+            )
             : 0;
 
     const stats = [
@@ -61,12 +83,15 @@ export default function StatsCards({
     ];
 
     return (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section
+            aria-label="Application statistics"
+            className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        >
             {stats.map((stat) => {
                 const Icon = stat.icon;
 
                 return (
-                    <div
+                    <article
                         key={stat.label}
                         className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]"
                     >
@@ -76,18 +101,24 @@ export default function StatsCards({
                                     {stat.label}
                                 </p>
 
-                                <p className="mt-2 text-2xl font-bold text-[var(--text-primary)]">
+                                <p
+                                    className="mt-2 text-2xl font-bold text-[var(--text-primary)]"
+                                    aria-label={`${stat.label}: ${stat.value}`}
+                                >
                                     {stat.value}
                                 </p>
                             </div>
 
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)]">
+                            <div
+                                aria-hidden="true"
+                                className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)]"
+                            >
                                 <Icon size={21} />
                             </div>
                         </div>
-                    </div>
+                    </article>
                 );
             })}
-        </div>
+        </section>
     );
 }

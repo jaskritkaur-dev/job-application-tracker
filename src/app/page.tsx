@@ -1,9 +1,11 @@
+import { BriefcaseBusiness, Plus } from "lucide-react";
 import { redirect } from "next/navigation";
 
-import Sidebar from "@/components/dashboard/sidebar";
-import Topbar from "@/components/dashboard/topbar";
-import StatsCards from "@/components/dashboard/statsCards";
+import AnalyticsSection from "@/components/dashboard/analytics-section";
 import KanbanBoard from "@/components/dashboard/kanban-board";
+import Sidebar from "@/components/dashboard/sidebar";
+import StatsCards from "@/components/dashboard/statsCards";
+import Topbar from "@/components/dashboard/topbar";
 
 import { createClient } from "@/lib/supabase/server";
 import { JobApplication } from "@/types/application";
@@ -18,13 +20,17 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const { data: applicationsData, error: applicationsError } =
-    await supabase
-      .from("applications")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const {
+    data: applicationsData,
+    error: applicationsError,
+  } = await supabase
+    .from("applications")
+    .select("*")
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
 
-  const applications: JobApplication[] = applicationsData ?? [];
+  const applications: JobApplication[] =
+    applicationsData ?? [];
 
   return (
     <main className="min-h-screen bg-[var(--background)]">
@@ -49,13 +55,46 @@ export default async function Home() {
 
               {applicationsError && (
                 <div className="mt-4 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
-                  Could not load applications.
+                  Could not load applications. Please refresh and try again.
                 </div>
               )}
 
               <StatsCards applications={applications} />
 
-              <KanbanBoard applications={applications} />
+              {applications.length === 0 &&
+                !applicationsError && (
+                  <div className="mt-8 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-12 text-center">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--primary-soft)] text-[var(--primary)]">
+                      <BriefcaseBusiness size={26} />
+                    </div>
+
+                    <h3 className="mt-5 text-lg font-semibold text-[var(--text-primary)]">
+                      No applications yet
+                    </h3>
+
+                    <p className="mx-auto mt-2 max-w-md text-sm text-[var(--text-muted)]">
+                      Start building your job pipeline by adding your first
+                      application.
+                    </p>
+
+                    <div className="mt-5 flex items-center justify-center gap-2 text-sm font-medium text-[var(--primary)]">
+                      <Plus size={16} />
+                      Use the Add Application button above
+                    </div>
+                  </div>
+                )}
+
+              <KanbanBoard
+                key={applications
+                  .map(
+                    (application) =>
+                      `${application.id}-${application.updated_at}-${application.status}-${application.position}`
+                  )
+                  .join("|")}
+                applications={applications}
+              />
+
+              <AnalyticsSection applications={applications} />
             </div>
           </section>
         </div>

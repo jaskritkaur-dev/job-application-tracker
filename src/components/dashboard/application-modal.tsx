@@ -1,10 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import {
+    useEffect,
+    useId,
+    useRef,
+    useState,
+    type ChangeEvent,
+    type FormEvent,
+    type KeyboardEvent,
+} from "react";
+
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+
 import {
     ApplicationSource,
     ApplicationStatus,
@@ -45,6 +55,12 @@ const initialFormData: FormData = {
     follow_up_date: "",
     notes: "",
 };
+
+const fieldClassName =
+    "w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40";
+
+const labelClassName =
+    "mb-2 block text-sm font-medium text-[var(--text-secondary)]";
 
 function getInitialFormData(
     application?: JobApplication | null
@@ -95,6 +111,12 @@ function ApplicationModalContent({
     const supabase = createClient();
     const router = useRouter();
 
+    const titleId = useId();
+    const descriptionId = useId();
+    const errorId = useId();
+
+    const dialogRef = useRef<HTMLDivElement>(null);
+
     const isEditing = Boolean(application);
 
     const [formData, setFormData] = useState<FormData>(() =>
@@ -104,8 +126,73 @@ function ApplicationModalContent({
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    useEffect(() => {
+        const previousActiveElement =
+            document.activeElement as HTMLElement | null;
+
+        const previousOverflow = document.body.style.overflow;
+
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            previousActiveElement?.focus();
+        };
+    }, []);
+
+    useEffect(() => {
+        function handleEscape(event: globalThis.KeyboardEvent) {
+            if (event.key === "Escape" && !isSaving) {
+                onClose();
+            }
+        }
+
+        document.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [isSaving, onClose]);
+
+    function handleDialogKeyDown(
+        event: KeyboardEvent<HTMLDivElement>
+    ) {
+        if (event.key !== "Tab" || !dialogRef.current) {
+            return;
+        }
+
+        const focusableElements =
+            dialogRef.current.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+            );
+
+        if (focusableElements.length === 0) {
+            return;
+        }
+
+        const firstElement = focusableElements[0];
+        const lastElement =
+            focusableElements[focusableElements.length - 1];
+
+        if (
+            event.shiftKey &&
+            document.activeElement === firstElement
+        ) {
+            event.preventDefault();
+            lastElement.focus();
+        }
+
+        if (
+            !event.shiftKey &&
+            document.activeElement === lastElement
+        ) {
+            event.preventDefault();
+            firstElement.focus();
+        }
+    }
+
     function handleChange(
-        event: React.ChangeEvent<
+        event: ChangeEvent<
             HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
         >
     ) {
@@ -118,7 +205,7 @@ function ApplicationModalContent({
     }
 
     async function handleSubmit(
-        event: React.FormEvent<HTMLFormElement>
+        event: FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
 
@@ -186,17 +273,45 @@ function ApplicationModalContent({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl">
-                <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onMouseDown={(event) => {
+                if (
+                    event.target === event.currentTarget &&
+                    !isSaving
+                ) {
+                    onClose();
+                }
+            }}
+        >
+            <div
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={
+                    errorMessage
+                        ? `${descriptionId} ${errorId}`
+                        : descriptionId
+                }
+                onKeyDown={handleDialogKeyDown}
+                className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl"
+            >
+                <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] px-5 py-5 sm:px-6">
                     <div>
-                        <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                        <h2
+                            id={titleId}
+                            className="text-lg font-semibold text-[var(--text-primary)]"
+                        >
                             {isEditing
                                 ? "Edit Application"
                                 : "Add Application"}
                         </h2>
 
-                        <p className="mt-1 text-sm text-[var(--text-muted)]">
+                        <p
+                            id={descriptionId}
+                            className="mt-1 text-sm text-[var(--text-muted)]"
+                        >
                             {isEditing
                                 ? "Update the details of this application."
                                 : "Add a job opportunity to your application tracker."}
@@ -207,81 +322,111 @@ function ApplicationModalContent({
                         type="button"
                         onClick={onClose}
                         disabled={isSaving}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-soft)] hover:text-white"
-                        aria-label="Close modal"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-soft)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Close application form"
                     >
-                        <X size={20} />
+                        <X size={20} aria-hidden="true" />
                     </button>
                 </div>
 
                 <form
                     onSubmit={handleSubmit}
-                    className="space-y-5 p-6"
+                    className="space-y-5 p-5 sm:p-6"
+                    aria-busy={isSaving}
                 >
                     <div className="grid gap-5 md:grid-cols-2">
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="company"
+                                className={labelClassName}
+                            >
                                 Company
+                                <span
+                                    aria-hidden="true"
+                                    className="ml-1 text-[var(--danger)]"
+                                >
+                                    *
+                                </span>
                             </label>
 
                             <input
+                                id="company"
                                 type="text"
                                 name="company"
                                 value={formData.company}
                                 onChange={handleChange}
                                 required
+                                autoFocus
+                                autoComplete="organization"
                                 placeholder="e.g. Stripe"
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="role"
+                                className={labelClassName}
+                            >
                                 Role
+                                <span
+                                    aria-hidden="true"
+                                    className="ml-1 text-[var(--danger)]"
+                                >
+                                    *
+                                </span>
                             </label>
 
                             <input
+                                id="role"
                                 type="text"
                                 name="role"
                                 value={formData.role}
                                 onChange={handleChange}
                                 required
+                                autoComplete="organization-title"
                                 placeholder="e.g. Frontend Developer"
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="status"
+                                className={labelClassName}
+                            >
                                 Status
                             </label>
 
                             <select
+                                id="status"
                                 name="status"
                                 value={formData.status}
                                 onChange={handleChange}
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             >
                                 <option value="saved">Saved</option>
                                 <option value="applied">Applied</option>
-                                <option value="interview">
-                                    Interview
-                                </option>
+                                <option value="interview">Interview</option>
                                 <option value="offer">Offer</option>
                                 <option value="rejected">Rejected</option>
                             </select>
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="application_source"
+                                className={labelClassName}
+                            >
                                 Application Source
                             </label>
 
                             <select
+                                id="application_source"
                                 name="application_source"
                                 value={formData.application_source}
                                 onChange={handleChange}
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             >
                                 <option value="job_portal">
                                     Job Portal
@@ -303,128 +448,174 @@ function ApplicationModalContent({
                                     Referral
                                 </option>
 
-                                <option value="other">Other</option>
+                                <option value="other">
+                                    Other
+                                </option>
                             </select>
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="location"
+                                className={labelClassName}
+                            >
                                 Location
                             </label>
 
                             <input
+                                id="location"
                                 type="text"
                                 name="location"
                                 value={formData.location}
                                 onChange={handleChange}
+                                autoComplete="address-level2"
                                 placeholder="e.g. Chandigarh"
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="work_type"
+                                className={labelClassName}
+                            >
                                 Work Type
                             </label>
 
                             <select
+                                id="work_type"
                                 name="work_type"
                                 value={formData.work_type}
                                 onChange={handleChange}
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             >
-                                <option value="remote">Remote</option>
-                                <option value="hybrid">Hybrid</option>
-                                <option value="on_site">On-site</option>
+                                <option value="remote">
+                                    Remote
+                                </option>
+
+                                <option value="hybrid">
+                                    Hybrid
+                                </option>
+
+                                <option value="on_site">
+                                    On-site
+                                </option>
                             </select>
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="salary"
+                                className={labelClassName}
+                            >
                                 Salary
                             </label>
 
                             <input
+                                id="salary"
                                 type="text"
                                 name="salary"
                                 value={formData.salary}
                                 onChange={handleChange}
                                 placeholder="e.g. ₹4–6 LPA"
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="job_url"
+                                className={labelClassName}
+                            >
                                 Job URL
                             </label>
 
                             <input
+                                id="job_url"
                                 type="url"
                                 name="job_url"
                                 value={formData.job_url}
                                 onChange={handleChange}
+                                inputMode="url"
+                                autoComplete="url"
                                 placeholder="https://..."
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="applied_date"
+                                className={labelClassName}
+                            >
                                 Applied Date
                             </label>
 
                             <input
+                                id="applied_date"
                                 type="date"
                                 name="applied_date"
                                 value={formData.applied_date}
                                 onChange={handleChange}
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                            <label
+                                htmlFor="follow_up_date"
+                                className={labelClassName}
+                            >
                                 Follow-up Date
                             </label>
 
                             <input
+                                id="follow_up_date"
                                 type="date"
                                 name="follow_up_date"
                                 value={formData.follow_up_date}
                                 onChange={handleChange}
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                                className={fieldClassName}
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="mb-2 block text-sm text-[var(--text-secondary)]">
+                        <label
+                            htmlFor="notes"
+                            className={labelClassName}
+                        >
                             Notes
                         </label>
 
                         <textarea
+                            id="notes"
                             name="notes"
                             value={formData.notes}
                             onChange={handleChange}
                             rows={4}
                             placeholder="Interview details, contact person, reminders..."
-                            className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+                            className={`${fieldClassName} resize-none`}
                         />
                     </div>
 
                     {errorMessage && (
-                        <div className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-3 text-sm text-[var(--danger)]">
+                        <div
+                            id={errorId}
+                            role="alert"
+                            aria-live="assertive"
+                            className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-3 text-sm text-[var(--danger)]"
+                        >
                             {errorMessage}
                         </div>
                     )}
 
-                    <div className="flex justify-end gap-3 border-t border-[var(--border)] pt-5">
+                    <div className="flex flex-col-reverse gap-3 border-t border-[var(--border)] pt-5 sm:flex-row sm:justify-end">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isSaving}
-                            className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-secondary)] transition hover:bg-[var(--surface-soft)] disabled:opacity-60"
+                            className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-secondary)] transition hover:bg-[var(--surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             Cancel
                         </button>
@@ -432,7 +623,7 @@ function ApplicationModalContent({
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] disabled:opacity-60"
+                            className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {isSaving
                                 ? "Saving..."

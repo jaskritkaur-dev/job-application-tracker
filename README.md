@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobTracker
+
+A modern job application tracking dashboard built with Next.js, TypeScript, Supabase, Tailwind CSS, dnd-kit, and Recharts.
+
+JobTracker helps users organize job applications, move them through different stages, track sources and work types, search and filter applications, and view useful application statistics and analytics.
+
+## Features
+
+- Email/password authentication with Supabase Auth
+- Protected dashboard routes
+- Add, edit, and delete job applications
+- Kanban board with five application stages:
+  - Saved
+  - Applied
+  - Interview
+  - Offer
+  - Rejected
+- Drag-and-drop application movement
+- Persistent status and position updates in Supabase
+- Mobile and tablet drag-and-drop support
+- Search applications by:
+  - Company
+  - Role
+  - Location
+  - Notes
+  - Application source
+  - Work type
+- Filter applications by:
+  - Application source
+  - Work type
+- Track application sources such as:
+  - Job Portal
+  - Career Page
+  - Cold Email
+  - Recruiter Outreach
+  - Referral
+  - Other
+- Track work types:
+  - Remote
+  - Hybrid
+  - On-site
+- Dashboard statistics:
+  - Total applications
+  - Interviews
+  - Offers
+  - Response rate
+- Analytics charts for:
+  - Applications by status
+  - Applications by source
+- Loading, error, and empty states
+- Responsive desktop, tablet, and mobile layout
+- Accessible forms, buttons, navigation, and keyboard interactions
+- Dark SaaS-style interface
+
+## Screenshots
+
+### Dashboard
+
+![JobTracker Dashboard](./public/screenshots/job-1.png)
+
+### Add Application
+
+![Add Application](./public/screenshots/job-2.png)
+
+### Application Board
+
+![JobTracker Application Board](./public/screenshots/job-3.png)
+
+### Login
+
+![JobTracker Login](./public/screenshots/job-4.png)
+
+## Tech Stack
+
+- Next.js 16
+- TypeScript
+- Tailwind CSS
+- Supabase
+- PostgreSQL
+- Supabase Auth
+- Row Level Security
+- dnd-kit
+- Recharts
+- Lucide React
+- Git and GitHub
+- Vercel
+
+## Database
+
+JobTracker uses a PostgreSQL database through Supabase.
+
+Each application stores information such as:
+
+- Company
+- Role
+- Status
+- Application source
+- Location
+- Work type
+- Job URL
+- Salary
+- Applied date
+- Follow-up date
+- Notes
+- Position
+- Created date
+- Updated date
+
+## Authentication and Security
+
+Authentication is handled with Supabase Auth.
+
+The `applications` table uses Row Level Security policies so authenticated users can only access and modify their own application records.
+
+Policies are applied for:
+
+- SELECT
+- INSERT
+- UPDATE
+- DELETE
+
+Each application is associated with the authenticated user through the `user_id` field.
 
 ## Getting Started
 
-First, run the development server:
+Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone https://github.com/jaskritkaur-dev/job-application-tracker.git
