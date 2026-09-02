@@ -51,23 +51,24 @@ JobTracker helps users organize job applications, move them through different st
 - Responsive desktop, tablet, and mobile layout
 - Accessible forms, buttons, navigation, and keyboard interactions
 - Dark SaaS-style interface
+
 ## Screenshots
 
 ### Dashboard
 
-![JobTracker Dashboard](./public/screenshots/job-1.png)
+![JobTracker Dashboard](./public/screenshots/job%201.png)
 
-### Add Application
+### Add Application 
 
-![Add Application](./public/screenshots/job-2.png)
+![Add Application](./public/screenshots/job%202.png)
 
-### Application Board
+### Application Board 
 
-![JobTracker Application Board](./public/screenshots/job-3.png)
+![JobTracker Applicatiob Board](./public/screenshots/job%203.png)
 
 ### Login
 
-![JobTracker Login](./public/screenshots/job-4.png)
+![JobTracker Login](./public/screenshots/job%204.png)
 
 ## Tech Stack
 
